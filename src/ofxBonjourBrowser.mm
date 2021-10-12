@@ -75,6 +75,33 @@ static const string LogTag = "ofxBonjourBrowser";
     }
 }
 
+// Sent when a service disappears
+- (void)netServiceBrowser:(NSNetServiceBrowser *)netServiceBrowser
+         didRemoveService:(NSNetService *)netService
+               moreComing:(BOOL)moreComing
+{
+    NSString *name = netService.name;
+    NSString *type = netService.type;
+    NSString *domain = netService.domain;
+    
+    delegate->removeService(type.UTF8String, name.UTF8String, domain.UTF8String);
+}
+
+void ofxBonjourBrowser::removeService(const string &type, const string &name, const string &domain) {
+    ofxBonjourService info = (ofxBonjourService){
+        .type   = type,
+        .name   = name,
+        .domain = domain,
+    };
+    
+    //Not sure about this - needs some testing, but it should works, the idea is to remove the
+    //matching item from the list of infos
+    //auto lambda = [name] (const ofxBonjourService & a) { return a.name == name;};
+    //ofRemove(infos,lambda);
+    
+    ofNotifyEvent(this->serviceRemoveE,info);
+}
+
 #pragma mark NSNetServiceDelegate
 
 - (void)netServiceDidResolveAddress:(NSNetService *)netService {
@@ -125,23 +152,26 @@ void ofxBonjourBrowser::foundService(const string &type, const string &name, con
     if(receiver != NULL) {
         receiver->foundService(type, name, ip, domain, port);
     }
-    ofxBonjourServiceInfo info = (ofxBonjourServiceInfo){
+    ofxBonjourService info = (ofxBonjourService){
         .type   = type,
         .name   = name,
         .ip     = ip,
         .domain = domain,
         .port   = port
     };
+
+    ofNotifyEvent(this->serviceNewE,info);
+    
     infos.push_back(info);
     lastFoundInfos.push_back(info);
 }
 
-const vector<ofxBonjourServiceInfo> &ofxBonjourBrowser::getFoundServiceInfo() const {
+const vector<ofxBonjourService> &ofxBonjourBrowser::getFoundServiceInfo() const {
     return infos;
 }
 
-vector<ofxBonjourServiceInfo> ofxBonjourBrowser::getLastFoundServiceInfo() {
-    vector<ofxBonjourServiceInfo> tmp = lastFoundInfos;
+vector<ofxBonjourService> ofxBonjourBrowser::getLastFoundServiceInfo() {
+    vector<ofxBonjourService> tmp = lastFoundInfos;
     lastFoundInfos.clear();
     return tmp;
 }

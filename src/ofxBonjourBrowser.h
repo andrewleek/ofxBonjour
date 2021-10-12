@@ -8,14 +8,8 @@
 #pragma once
 
 #include "ofMain.h"
-
-struct ofxBonjourServiceInfo {
-    string type;
-    string name;
-    string ip;
-    string domain;
-    int port;
-};
+#include "ofEvents.h"
+#include "ofxBonjourService.h"
 
 class ofxBonjourBrowserFoundNotificationReceiverInterface {
 public:
@@ -30,17 +24,20 @@ public:
     void startBrowse(const string &type, const string &domain = "");
     void stopBrowse();
     void foundService(const string &type, const string &name, const string &ip, const string &domain, const int port);
-    
-    const vector<ofxBonjourServiceInfo> &getFoundServiceInfo() const;
-    vector<ofxBonjourServiceInfo> getLastFoundServiceInfo();
+    void removeService(const string &type, const string &name, const string &domain);
+
+    const vector<ofxBonjourService> &getFoundServiceInfo() const;
+    vector<ofxBonjourService> getLastFoundServiceInfo();
     
     void setResolveTimeout(float resolveTimeout);
     void setFoundNotificationReceiver(ofxBonjourBrowserFoundNotificationReceiverInterface *receiver);
-    
+    ofEvent<ofxBonjourService> serviceNewE;
+    ofEvent<ofxBonjourService> serviceRemoveE;
+
 private:
     void *impl;
-    vector<ofxBonjourServiceInfo> infos;
-    vector<ofxBonjourServiceInfo> lastFoundInfos;
+    vector<ofxBonjourService> infos;
+    vector<ofxBonjourService> lastFoundInfos;
     
     ofxBonjourBrowserFoundNotificationReceiverInterface *receiver;
 };

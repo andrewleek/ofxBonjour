@@ -7,5 +7,6 @@
 
 #pragma once
 
+#include "ofxBonjourService.h"
 #include "ofxBonjourPublisher.h"
 #include "ofxBonjourBrowser.h"
